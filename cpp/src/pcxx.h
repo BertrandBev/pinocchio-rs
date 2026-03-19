@@ -1,0 +1,10 @@
+#pragma once
+#include <Eigen/Core>
+#include <Eigen/Geometry>
+#include <pinocchio/algorithm/aba-derivatives.hpp>
+#include <pinocchio/algorithm/constrained-dynamics.hpp>
+#include <pinocchio/algorithm/joint-configuration.hpp>
+#include <pinocchio/algorithm/kinematics.hpp>
+#include <pinocchio/algorithm/rnea.hpp>
+#include <pinocchio/parsers/urdf.hpp>
+#include <urdf_parser/urdf_parser.h>
