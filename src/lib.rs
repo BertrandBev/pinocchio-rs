@@ -1,7 +1,7 @@
 #[cxx::bridge(namespace = "pinocchio_bridge")]
 mod ffi {
     unsafe extern "C++" {
-        include!("pinocchio_bridge/cpp/src/pinocchio_bridge.h");
+        include!("pinocchio_bridge.h");
 
         type Model;
 
