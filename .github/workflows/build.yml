@@ -1,13 +1,11 @@
-name: Build Matrix
-
 on:
   push:
-    branches:
-      - master
+    branches: [master]
+    tags: ["v*"]
+
 jobs:
   build:
     strategy:
-      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         arch: [x64, x86]
@@ -16,18 +14,43 @@ jobs:
             arch: x86
 
     runs-on: ${{ matrix.os }}
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup xmake
-        uses: xmake-io/github-action-setup@v1
+      - uses: actions/checkout@v4
+      - uses: xmake-io/github-action-setup-xmake@v1
         with:
           xmake-version: latest
 
-      - name: Configure
-        run: xmake f -a ${{ matrix.arch }} -y
+      - name: Configure and Build
+        run: |
+          xmake f -m release -a ${{ matrix.arch }} -y
+          xmake
 
-      - name: Build
-        run: xmake
+      - name: Prepare Artifacts
+        run: |
+          mkdir out
+          cp -r build/ /out/ || copy build\ out\ /s
+
+      - name: Upload to Actions Storage
+        uses: actions/upload-artifact@v4
+        with:
+          name: bin-${{ matrix.os }}
+          path: build/ # Adjust this to the specific binary path if preferred
+
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+          merge-multiple: false
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ./artifacts/**/*
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
