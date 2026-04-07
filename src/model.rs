@@ -36,6 +36,12 @@ impl<const NQ: usize, const NV: usize> Model<NQ, NV> {
     }
 
     // Joints
+    pub fn get_joint_indices(&self, id: usize) -> JointIndices {
+        let mut indices = JointIndices::default();
+        self.0
+            .get_joint_indices(id, &mut indices.q_idx, &mut indices.v_idx);
+        indices
+    }
 
     pub fn get_joint_name(&self, id: usize) -> String {
         let mut name = String::default();
@@ -236,7 +242,7 @@ impl<const NQ: usize, const NV: usize> std::fmt::Debug for Model<NQ, NV> {
 }
 
 // Output types
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct JointIndices {
     q_idx: usize,
     v_idx: usize,

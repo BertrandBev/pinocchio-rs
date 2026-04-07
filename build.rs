@@ -1,6 +1,5 @@
 use std::env;
 use std::path::PathBuf;
-use std::process::Command;
 
 fn main() {
     // Asset plaform/arch validity
@@ -14,18 +13,16 @@ fn main() {
 
     // Compile the bridge
     let cpp_dir = cpp_dir();
-    let include_dirs = get_include_dirs(&cpp_dir);
     cxx_build::bridge("src/lib.rs")
         .include(&cpp_dir.join("src"))
-        .includes(include_dirs)
         .std("c++17")
         .flag_if_supported("-O3")
         .compile("pinocchio_bridge_cxx");
 
     // Link
-    let lib_dir = cpp_dir.join("build").join("macosx/arm64/release");
+    let lib_dir = lib_dir().unwrap();
     println!("cargo:rustc-link-search=native={}", lib_dir.display());
-    println!("cargo:rustc-link-lib=static=pinocchio_bridge");
+    println!("cargo:rustc-link-lib=static=pinocchio");
 
     // Link C++ runtime
     let target = env::var("TARGET").unwrap();
@@ -39,22 +36,6 @@ fn main() {
     println!("cargo:rerun-if-changed=cpp/src/pinocchio_bridge.cpp");
     println!("cargo:rerun-if-changed=cpp/src/pinocchio_bridge.h");
     println!("cargo:rerun-if-changed=cpp/xmake.lua");
-}
-
-// Utils
-fn get_include_dirs(cpp_dir: &PathBuf) -> Vec<String> {
-    let output = Command::new("xmake")
-        .args(["show", "-t", "pinocchio_bridge", "--json"])
-        .current_dir(&cpp_dir)
-        .output()
-        .expect("xmake show failed");
-    let json: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
-    json["sysincludedirs"]
-        .as_array()
-        .unwrap()
-        .iter()
-        .filter_map(|obj| obj["value"].as_str().map(String::from))
-        .collect()
 }
 
 fn download_file(url: &str, dest: &PathBuf) {
@@ -97,9 +78,9 @@ fn lib_dir() -> Option<PathBuf> {
     let arch = Arch::get()?;
     Some(
         cpp_dir()
+            .join("build")
             .join(platform.name())
             .join(arch.name())
-            .join("release")
             .join("release"),
     )
 }
@@ -118,7 +99,7 @@ fn lib_url() -> Option<String> {
     let platform = Plaform::get()?.name();
     let arch = Arch::get()?.name();
     Some(format!(
-        "{RELEASE_URL}/v${version}/libpinocchio-{platform}-{arch}.a"
+        "{RELEASE_URL}/v{version}/libpinocchio-{platform}-{arch}.a"
     ))
 }
 
