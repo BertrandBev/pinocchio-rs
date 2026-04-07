@@ -17,6 +17,8 @@ add_requires("urdfdom", { configs = { shared = false }, system = false })
 -- Main target
 target("pinocchio_bridge")
 set_kind("static")
+    set_symbols("hidden")
+    set_strip("all")
     add_packages("pinocchio", "urdfdom")
     set_pcxxheader("src/pcxx.h")
     add_files("src/**.cpp")

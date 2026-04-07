@@ -78,7 +78,6 @@ bool Model::get_joint_indices(size_t id, size_t &q_idx, size_t &v_idx) const {
 bool Model::get_joint_axis(size_t id, Slice axis) const {
   auto &d = *data;
   INDEX_CHECK_LEN(id, joint_count());
-  auto &j = d.model.joints[id];
   MAP_MUT(axis, 3) << boost::apply_visitor(AxisVisitor(),
                                            d.model.joints[id].toVariant());
   return true;
