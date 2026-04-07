@@ -17,15 +17,22 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
-      - uses: xmake-io/github-action-setup-xmake@v1
-        with:
-          xmake-version: latest
 
-      - name: Configure and Build
-        working-directory: ./cpp
+      # - uses: xmake-io/github-action-setup-xmake@v1
+      #   with:
+      #     xmake-version: latest
+
+      # - name: Configure and Build
+      #   working-directory: ./cpp
+      #   run: |
+      #     xmake f -m release -a ${{ matrix.arch }} -y
+      #     xmake
+
+      - name: Dummy Build Step
         run: |
-          xmake f -m release -a ${{ matrix.arch }} -y
-          xmake
+          mkdir -p cpp/build/${{ matrix.os }}/${{ matrix.arch }}/release/
+          echo "Debug build for ${{ matrix.os }} ${{ matrix.arch }}" > cpp/build/${{ matrix.os }}/${{ matrix.arch }}/release/dummy.txt
+          ls -R cpp/build/
 
       - name: Upload to Actions Storage
         uses: actions/upload-artifact@v4
@@ -38,6 +45,8 @@ jobs:
     needs: build
     if: startsWith(github.ref, 'refs/tags/')
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
