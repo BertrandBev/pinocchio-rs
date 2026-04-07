@@ -1,0 +1,114 @@
+use std::env;
+#[cfg(feature = "source_build")]
+use std::intrinsics::ctpop;
+use std::path::{Path, PathBuf};
+use std::process::Command;
+
+enum Plaform {
+    MacOS,
+    Linux,
+    Windows,
+}
+
+fn main() {
+    let manifest_dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
+    let cpp_dir = manifest_dir.join("cpp");
+
+    // Build the Cpp lib
+    #[cfg(feature = "source_build")]
+    source_build(&cpp_dir);
+    #[cfg(not(feature = "source_build"))]
+    download_binary(&cpp_dir);
+
+    // Compile the bridge
+    let include_dirs = get_include_dirs(&cpp_dir);
+    cxx_build::bridge("src/lib.rs")
+        .include(&cpp_dir.join("src"))
+        .includes(include_dirs)
+        .std("c++17")
+        .flag_if_supported("-O3")
+        .compile("pinocchio_bridge_cxx");
+
+    // Link
+    let lib_dir = cpp_dir.join("build").join("macosx/arm64/release");
+    println!("cargo:rustc-link-search=native={}", lib_dir.display());
+    println!("cargo:rustc-link-lib=static=pinocchio_bridge");
+
+    // Link C++ runtime
+    let target = env::var("TARGET").unwrap();
+    if target.contains("apple") {
+        println!("cargo:rustc-link-lib=c++");
+    } else {
+        println!("cargo:rustc-link-lib=stdc++");
+    }
+
+    // // Re-run if any C++ source or header changes
+    println!("cargo:rerun-if-changed=cpp/src/pinocchio_bridge.cpp");
+    println!("cargo:rerun-if-changed=cpp/src/pinocchio_bridge.h");
+    println!("cargo:rerun-if-changed=cpp/xmake.lua");
+}
+
+fn get_include_dirs(cpp_dir: &PathBuf) -> Vec<String> {
+    let output = Command::new("xmake")
+        .args(["show", "-t", "pinocchio_bridge", "--json"])
+        .current_dir(&cpp_dir)
+        .output()
+        .expect("xmake show failed");
+    let json: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    json["sysincludedirs"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter_map(|obj| obj["value"].as_str().map(String::from))
+        .collect()
+}
+
+fn download_file(url: &str, dest: &PathBuf) {
+    let response = ureq::get(url)
+        .call()
+        .expect(&format!("Failed to download {}", url));
+    let mut file =
+        std::fs::File::create(dest).expect(&format!("Failed to create file at {:?}", dest));
+    let mut reader = response.into_body().into_reader();
+    std::io::copy(&mut reader, &mut file).expect("Failed to write downloaded file");
+}
+
+fn source_build(cpp_dir: &Path) {
+    let xmake_status = Command::new("xmake")
+        .current_dir(&cpp_dir)
+        .status()
+        .expect("xmake cmd not found");
+    assert!(xmake_status.success(), "xmake build failed");
+}
+
+fn download_binary(cpp_dir: &Path) {
+    let target_os = env::var("CARGO_CFG_TARGET_OS").unwrap();
+    let target_arch = env::var("CARGO_CFG_TARGET_ARCH").unwrap();
+    const RELEASE_URL: &str = "https://github.com/BertrandBev/pinocchio-rs/releases/download";
+
+    // Map (os, arch) to a pre-built binary URL
+    let prebuilt: Option<(&str, &str)> = match (target_os.as_str(), target_arch.as_str()) {
+        ("macos", "aarch64") => Some((
+            "{RELEASE_URL}/v1.0.0/libpinocchio-macos-latest-arm64.a",
+            "macos-latest/arm64",
+        )),
+        ("linux", "x86_64") => Some((
+            "{RELEASE_URL}/v1.0.0/libpinocchio-ubuntu-latest-x64.a",
+            "ubuntu-latest/x64",
+        )),
+        _ => None,
+    };
+
+    if let Some((url, subpath)) = prebuilt {
+        // Place binary at cpp/build/{target}/{arch}/release/libpinocchio.a
+        let out_dir = cpp_dir.join("build").join(subpath).join("release");
+        std::fs::create_dir_all(&out_dir).expect("Failed to create output directory");
+
+        let lib_path = out_dir.join("libpinocchio.a");
+
+        if !lib_path.exists() {
+            println!("cargo:warning=Downloading pre-built binary");
+            download_file(url, &lib_path);
+        }
+    }
+}

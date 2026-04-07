@@ -1,12 +1,9 @@
-set_project("pinocchio-bridge")
-set_version("0.1.0")
+set_project("pinocchio")
 set_languages("cxx20")
 set_optimize("fastest")
 add_rules("plugin.compile_commands.autoupdate", { outputdir = "." })
 
-
 -- Libs
--- add_requires("eigen", { system = false })
 add_requires("pinocchio", {
     configs = { shared = false, urdf = true, python = false },
     system = false
@@ -15,7 +12,7 @@ add_requires("urdfdom", { configs = { shared = false }, system = false })
 
 
 -- Main target
-target("pinocchio_bridge")
+target("pinocchio")
 set_kind("static")
     set_symbols("hidden")
     set_strip("all")
