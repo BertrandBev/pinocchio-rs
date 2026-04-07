@@ -11,10 +11,13 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
+            platform_name: linux
             arch: x64
           - os: macos-latest
+            platform_name: macos
             arch: arm64
           # - os: windows-latest
+          #   platform_name: windows
           #   arch: x64
 
     runs-on: ${{ matrix.os }}
@@ -40,7 +43,7 @@ jobs:
       - name: Upload to Actions Storage
         uses: actions/upload-artifact@v4
         with:
-          name: libpinocchio-${{ matrix.os }}-${{ matrix.arch }}
+          name: libpinocchio-${{ matrix.platform_name }}-${{ matrix.arch }}
           path: cpp/build/**/release/*.a
           if-no-files-found: error
 

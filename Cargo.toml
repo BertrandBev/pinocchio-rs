@@ -1,6 +1,6 @@
 [package]
-name = "pinocchio_bridge"
-version = "0.1.0"
+name = "pinocchio_rs"
+version = "1.0.0"
 edition = "2021"
 rust-version = "1.75"
 
@@ -14,11 +14,16 @@ serde = "1.0.228"
 cxx-build = "=1.0.128"
 serde = "1.0.228"
 serde_json = "1.0.149"
+ureq = "3.2.1"
 
 [lib]
-name = "pinocchio_bridge"
+name = "pinocchio_rs"
 path = "src/lib.rs"
 
 [[bin]]
 name = "dev"
 path = "bin/dev.rs"
+
+[features]
+# Build library from source
+source_build = []
