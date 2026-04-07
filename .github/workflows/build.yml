@@ -10,7 +10,7 @@ jobs:
     strategy:
       matrix:
         # os: [ubuntu-latest, windows-latest, macos-latest]
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, macos-latest]
         arch: [x64]
         # exclude:
         #   - os: macos-latest
@@ -55,6 +55,14 @@ jobs:
         with:
           path: ./artifacts
           merge-multiple: false
+
+      - name: Rename artifacts for release
+        run: |
+          find ./artifacts -name "*.a" | while read f; do
+            dir=$(dirname "$f")
+            artifact_name=$(echo "$dir" | sed 's|./artifacts/||' | cut -d'/' -f1)
+            mv "$f" "$dir/${artifact_name}.a"
+          done
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
