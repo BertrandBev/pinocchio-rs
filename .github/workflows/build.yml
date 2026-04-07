@@ -31,7 +31,7 @@ jobs:
       - name: Dummy Build Step
         run: |
           mkdir -p cpp/build/${{ matrix.os }}/${{ matrix.arch }}/release/
-          echo "Debug build for ${{ matrix.os }} ${{ matrix.arch }}" > cpp/build/${{ matrix.os }}/${{ matrix.arch }}/release/dummy.txt
+          echo "Debug build for ${{ matrix.os }} ${{ matrix.arch }}" > cpp/build/${{ matrix.os }}/${{ matrix.arch }}/release/dummy.a
           ls -R cpp/build/
 
       - name: Upload to Actions Storage
