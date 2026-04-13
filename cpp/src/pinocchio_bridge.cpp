@@ -257,10 +257,14 @@ std::unique_ptr<Model> Model::clone() const {
   return std::make_unique<Model>(*this);
 }
 
-std::unique_ptr<Model> Model::model_load(rust::Str path) {
+std::unique_ptr<Model> Model::model_load(rust::Str path, bool free_flyer) {
   const auto fname = std::string(path);
   pin::Model model;
-  pin::urdf::buildModel(fname, pin::JointModelFreeFlyer(), model);
+  if (free_flyer) {
+    pin::urdf::buildModel(fname, pin::JointModelFreeFlyer(), model);
+  } else {
+    pin::urdf::buildModel(fname, model);
+  }
   // Add damping & friction
   auto urdf_dom = urdf::parseURDFFile(fname);
   for (const auto &joint_pair : urdf_dom->joints_) {
@@ -278,7 +282,7 @@ std::unique_ptr<Model> Model::model_load(rust::Str path) {
   return std::make_unique<Model>(std::move(data));
 }
 
-std::unique_ptr<Model> model_load(rust::Str path) {
-  return Model::model_load(path);
+std::unique_ptr<Model> model_load(rust::Str path, bool free_flyer) {
+  return Model::model_load(path, free_flyer);
 }
 } // namespace pinocchio_bridge

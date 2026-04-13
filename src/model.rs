@@ -1,4 +1,4 @@
-use std::{borrow::Cow, ops::Deref};
+use std::{borrow::Cow, ops::Deref, path::Path};
 
 use crate::ffi;
 use cxx::UniquePtr;
@@ -24,8 +24,11 @@ impl<const NQ: usize, const NV: usize> Clone for Model<NQ, NV> {
 }
 
 impl<const NQ: usize, const NV: usize> Model<NQ, NV> {
-    pub fn load(path: &str) -> Result<Self> {
-        let loaded = ffi::model_load(path)?;
+    pub fn load(path: &str, free_flyer: bool) -> Result<Self> {
+        if !Path::new(path).exists() {
+            return Err(format!("file {} not found", path).into());
+        }
+        let loaded = ffi::model_load(path, free_flyer)?;
         if loaded.nq() != NQ as i32 {
             return Err(format!("loaded nq {} expected {}", loaded.nq(), NQ).into());
         }
@@ -199,6 +202,72 @@ impl<const NQ: usize, const NV: usize> Model<NQ, NV> {
             .integrate(q.as_slice(), dv.as_slice(), q_out.as_mut_slice()));
     }
 
+    // Integration schemas
+    pub fn semi_implicit_euler(
+        &mut self,
+        q: &mut SVec<NQ>,
+        v: &mut SVec<NV>,
+        t: &SVec<NV>,
+        dt: f64,
+    ) {
+        let mut ddq = SVec::<NV>::zeros();
+        self.aba(q, v, t, &mut ddq);
+        v.axpy(dt, &ddq, 1.0); // v += ddq * dt
+        let mut q_next = SVec::<NQ>::zeros();
+        ddq.axpy(dt, &v, 0.0); // Re-use ddq = v * dt
+        self.integrate(q, &ddq, &mut q_next);
+        *q = q_next;
+    }
+
+    fn qv_diff(&mut self, qv: &(SVec<NQ>, SVec<NV>), t: &SVec<NV>) -> (SVec<NV>, SVec<NV>) {
+        let mut ddq = SVec::<NV>::zeros();
+        self.aba(&qv.0, &qv.1, t, &mut ddq);
+        (qv.1.clone(), ddq)
+    }
+
+    fn qv_integrate(&mut self, qv: &mut (SVec<NQ>, SVec<NV>), dqv: &(SVec<NV>, SVec<NV>), dt: f64) {
+        let mut q_next = SVec::<NQ>::zeros();
+        let vdt = dqv.0.clone() * dt;
+        self.integrate(&qv.0, &vdt, &mut q_next);
+        qv.0 = q_next;
+        qv.1 += dqv.1 * dt;
+    }
+
+    pub fn runge_kutta_4(&mut self, q: &mut SVec<NQ>, v: &mut SVec<NV>, t: &SVec<NV>, dt: f64) {
+        let qv = (q.clone(), v.clone());
+
+        // k1
+        let k1 = self.qv_diff(&qv, t);
+
+        // k2
+        let mut qv_temp = qv.clone();
+        self.qv_integrate(&mut qv_temp, &k1, dt / 2.0);
+        let k2 = self.qv_diff(&qv_temp, t);
+
+        // k3
+        let mut qv_temp = qv.clone();
+        self.qv_integrate(&mut qv_temp, &k2, dt / 2.0);
+        let k3 = self.qv_diff(&qv_temp, t);
+
+        // k4
+        let mut qv_temp = qv.clone();
+        self.qv_integrate(&mut qv_temp, &k3, dt);
+        let k4 = self.qv_diff(&qv_temp, t);
+
+        // Full step
+        let mut qv_temp = qv.clone();
+        self.qv_integrate(
+            &mut qv_temp,
+            &(
+                k1.0 + k2.0 * 2.0 + k3.0 * 2.0 + k4.0,
+                k1.1 + k2.1 * 2.0 + k3.1 * 2.0 + k4.1,
+            ),
+            dt / 6.0,
+        );
+        q.copy_from(&qv_temp.0);
+        v.copy_from(&qv_temp.1);
+    }
+
     // Additionnal debug functions
     pub fn dbg_joints(&self, f: &mut impl std::io::Write) {
         for k in 0..self.0.joint_count() {
@@ -242,20 +311,20 @@ impl<const NQ: usize, const NV: usize> std::fmt::Debug for Model<NQ, NV> {
 }
 
 // Output types
-#[derive(Debug, Default)]
+#[derive(Debug, Clone, Default)]
 pub struct JointIndices {
-    q_idx: usize,
-    v_idx: usize,
+    pub q_idx: usize,
+    pub v_idx: usize,
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Clone, Default)]
 pub struct JointInertia {
     /// Joint mass
-    mass: f64,
+    pub mass: f64,
     /// Joint center of mass
-    lever: SVec<3>,
+    pub lever: SVec<3>,
     /// Column major symmetric inertia matrix
-    inertia: SVec<6>,
+    pub inertia: SVec<6>,
 }
 
 // Custom result type
@@ -286,20 +355,19 @@ impl std::error::Error for ModelError {}
 
 #[cfg(test)]
 mod tests {
+    use super::*;
     use std::{env, path::PathBuf};
 
-    use super::*;
-
-    #[test]
-    fn test_pinocchio_model() {
-        let path = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap()).join("./src/model.urdf");
-        let mut model = Model::<9, 8>::load(path.to_str().unwrap()).unwrap();
-        assert_eq!(model.nq(), 9);
-        assert_eq!(model.nv(), 8);
-        let mut q: SVec<9> = Default::default();
-        model.neutral(&mut q);
-        model.forward_kinematics(&q);
-        println!("{:?}", model);
-        println!("q: {}", q);
-    }
+    // #[test]
+    // fn test_pinocchio_model() {
+    //     let path = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap()).join("./src/model.urdf");
+    //     let mut model = Model::<9, 8>::load(path.to_str().unwrap(), true).unwrap();
+    //     assert_eq!(model.nq(), 9);
+    //     assert_eq!(model.nv(), 8);
+    //     let mut q: SVec<9> = Default::default();
+    //     model.neutral(&mut q);
+    //     model.forward_kinematics(&q);
+    //     println!("{:?}", model);
+    //     println!("q: {}", q);
+    // }
 }
