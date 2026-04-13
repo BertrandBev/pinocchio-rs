@@ -52,7 +52,7 @@ mod ffi {
 
         // Namespace methods
         fn clone(&self) -> UniquePtr<Model>;
-        fn model_load(path: &str) -> Result<UniquePtr<Model>>;
+        fn model_load(path: &str, free_flyer: bool) -> Result<UniquePtr<Model>>;
     }
 }
 

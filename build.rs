@@ -3,7 +3,7 @@ use std::path::PathBuf;
 
 fn main() {
     // Asset plaform/arch validity
-    lib_path().expect("invalid platform/arch");
+    lib_path(true).expect("invalid platform/arch");
 
     // Build the Cpp lib
     #[cfg(feature = "source_build")]
@@ -12,6 +12,10 @@ fn main() {
     download_binary();
 
     // Compile the bridge
+    unsafe {
+        // Clear the -D warning
+        env::set_var("ZERO_AR_DATE", "1");
+    }
     let cpp_dir = cpp_dir();
     cxx_build::bridge("src/lib.rs")
         .include(&cpp_dir.join("src"))
@@ -20,7 +24,7 @@ fn main() {
         .compile("pinocchio_bridge_cxx");
 
     // Link
-    let lib_dir = lib_dir().unwrap();
+    let lib_dir = lib_dir(true).unwrap();
     println!("cargo:rustc-link-search=native={}", lib_dir.display());
     println!("cargo:rustc-link-lib=static=pinocchio");
 
@@ -50,18 +54,24 @@ fn download_file(url: &str, dest: &PathBuf) {
 
 #[cfg(feature = "source_build")]
 fn source_build() {
-    let xmake_status = Command::new("xmake")
+    use std::process::Command;
+    let mut cmd = Command::new("xmake");
+    let xmake_status = cmd
         .current_dir(&cpp_dir())
         .status()
         .expect("xmake cmd not found");
     assert!(xmake_status.success(), "xmake build failed");
+    // Copy lib
+    let lib_dir = lib_dir(true).unwrap();
+    std::fs::create_dir_all(&lib_dir).expect("Failed to create output directory");
+    std::fs::copy(lib_path(false).unwrap(), lib_path(true).unwrap())
 }
 
 fn download_binary() {
-    let path = lib_path().unwrap();
+    let path = lib_path(true).unwrap();
     let url = lib_url().unwrap();
     if !path.exists() {
-        let lib_dir = lib_dir().unwrap();
+        let lib_dir = lib_dir(true).unwrap();
         std::fs::create_dir_all(&lib_dir).expect("Failed to create output directory");
         println!("cargo:info=Downloading pre-built binary");
         download_file(&url, &path);
@@ -73,24 +83,23 @@ fn cpp_dir() -> PathBuf {
     manifest_dir.join("cpp")
 }
 
-fn lib_dir() -> Option<PathBuf> {
+fn lib_dir(with_version: bool) -> Option<PathBuf> {
     let platform = Plaform::get()?;
     let arch = Arch::get()?;
-    Some(
-        cpp_dir()
-            .join("build")
-            .join(platform.name())
-            .join(arch.name())
-            .join("release"),
-    )
+    let mut path = cpp_dir().join("build");
+    if with_version {
+        let version = env!("CARGO_PKG_VERSION");
+        path = path.join(format!("{version}"));
+    }
+    Some(path.join(platform.name()).join(arch.name()).join("release"))
 }
 
 fn lib_name() -> &'static str {
     "libpinocchio.a"
 }
 
-fn lib_path() -> Option<PathBuf> {
-    Some(lib_dir()?.join(lib_name()))
+fn lib_path(with_version: bool) -> Option<PathBuf> {
+    Some(lib_dir(with_version)?.join(lib_name()))
 }
 
 fn lib_url() -> Option<String> {

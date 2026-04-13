@@ -52,7 +52,7 @@ public:
 
   // Ctors
   std::unique_ptr<Model> clone() const;
-  static std::unique_ptr<Model> model_load(rust::Str path);
+  static std::unique_ptr<Model> model_load(rust::Str path, bool free_flyer);
 
 private:
   class ModelImpl;
@@ -66,5 +66,5 @@ public:
 };
 
 // Namespace methods
-std::unique_ptr<Model> model_load(rust::Str path);
+std::unique_ptr<Model> model_load(rust::Str path, bool free_flyer);
 } // namespace pinocchio_bridge
