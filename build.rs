@@ -2,6 +2,12 @@ use std::env;
 use std::path::PathBuf;
 
 fn main() {
+    // Skip download when generating docs
+    if env::var("DOCS_RS").is_ok() {
+        println!("cargo:rustc-cfg=docsrs");
+        return;
+    }
+
     // Asset plaform/arch validity
     Arch::get().expect("invalid arch");
     Plaform::get().expect("invalid platform");
