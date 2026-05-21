@@ -14,7 +14,7 @@ fn main() {
     // Compile the bridge
     unsafe {
         // Clear the -D warning
-        env::set_var("ZERO_AR_DATE", "1");
+        env::set_var("ZERO_AR_DATE", "0");
     }
     let cpp_dir = cpp_dir();
     cxx_build::bridge("src/lib.rs")
@@ -42,16 +42,6 @@ fn main() {
     println!("cargo:rerun-if-changed=cpp/xmake.lua");
 }
 
-fn download_file(url: &str, dest: &PathBuf) {
-    let response = ureq::get(url)
-        .call()
-        .expect(&format!("Failed to download {}", url));
-    let mut file =
-        std::fs::File::create(dest).expect(&format!("Failed to create file at {:?}", dest));
-    let mut reader = response.into_body().into_reader();
-    std::io::copy(&mut reader, &mut file).expect("Failed to write downloaded file");
-}
-
 #[cfg(feature = "source_build")]
 fn source_build() {
     use std::process::Command;
@@ -64,9 +54,10 @@ fn source_build() {
     // Copy lib
     let lib_dir = lib_dir(true).unwrap();
     std::fs::create_dir_all(&lib_dir).expect("Failed to create output directory");
-    std::fs::copy(lib_path(false).unwrap(), lib_path(true).unwrap())
+    std::fs::copy(lib_path(false).unwrap(), lib_path(true).unwrap()).unwrap();
 }
 
+#[cfg(not(feature = "source_build"))]
 fn download_binary() {
     let path = lib_path(true).unwrap();
     let url = lib_url().unwrap();
@@ -76,6 +67,17 @@ fn download_binary() {
         println!("cargo:info=Downloading pre-built binary");
         download_file(&url, &path);
     }
+}
+
+#[cfg(not(feature = "source_build"))]
+fn download_file(url: &str, dest: &PathBuf) {
+    let response = ureq::get(url)
+        .call()
+        .expect(&format!("Failed to download {}", url));
+    let mut file =
+        std::fs::File::create(dest).expect(&format!("Failed to create file at {:?}", dest));
+    let mut reader = response.into_body().into_reader();
+    std::io::copy(&mut reader, &mut file).expect("Failed to write downloaded file");
 }
 
 fn cpp_dir() -> PathBuf {
@@ -98,10 +100,12 @@ fn lib_name() -> &'static str {
     "libpinocchio.a"
 }
 
+#[allow(unused)]
 fn lib_path(with_version: bool) -> Option<PathBuf> {
     Some(lib_dir(with_version)?.join(lib_name()))
 }
 
+#[allow(unused)]
 fn lib_url() -> Option<String> {
     const RELEASE_URL: &str = "https://github.com/BertrandBev/pinocchio-rs/releases/download";
     let version = env!("CARGO_PKG_VERSION");

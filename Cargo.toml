@@ -5,7 +5,7 @@ edition = "2021"
 rust-version = "1.75"
 
 [dependencies]
-nalgebra = { version = "0.34" }
+nalgebra = { version = "0.33" }
 cxx = "1.0.194"
 serde_json = "1.0.149"
 serde = "1.0.228"
