@@ -12,6 +12,7 @@ fn main() -> eframe::Result<()> {
 }
 
 struct PendulumApp {
+    #[allow(unused)]
     t0: SystemTime,
     t: SystemTime,
     q: SVec<2>,
@@ -63,9 +64,9 @@ impl eframe::App for PendulumApp {
         self.t = t;
 
         // Step physics
-        if t.duration_since(self.t0).unwrap_or_default().as_secs_f64() > 3.0 {
-            self.step(dt);
-        }
+        // if t.duration_since(self.t0).unwrap_or_default().as_secs_f64() > 3.0 {
+        self.step(dt);
+        // }
 
         egui::CentralPanel::default().show_inside(ui, |ui| {
             ui.heading("Double Pendulum");

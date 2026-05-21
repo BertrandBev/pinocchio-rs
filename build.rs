@@ -43,17 +43,19 @@ fn main() {
 fn source_build() {
     use std::process::Command;
     let mut cmd = Command::new("xmake");
-    let xmake_status = cmd
+    println!("cargo:warning=out_dir: {:?}", out_dir());
+    println!("cargo:warning=cpp_dir: {:?}", cpp_dir());
+    let cmd = cmd
         .args(["-P", cpp_dir().to_str().unwrap()])
-        .current_dir(&target_dir())
-        .status()
-        .expect("xmake cmd not found");
+        .current_dir(&out_dir());
+    println!("cargo:warning=cmd: {:?}", cmd);
+    let xmake_status = cmd.status().expect("xmake cmd error");
     assert!(xmake_status.success(), "xmake build failed");
 
     // Copy built lib
     let platform = Plaform::get().unwrap();
     let arch = Arch::get().unwrap();
-    let src_dir = target_dir()
+    let src_dir = out_dir()
         .join("build")
         .join(platform.name())
         .join(arch.name())
@@ -90,7 +92,7 @@ fn download_file(url: &str, dest: &PathBuf) {
 #[cfg(not(feature = "source_build"))]
 fn lib_url() -> Option<String> {
     const RELEASE_URL: &str = "https://github.com/BertrandBev/pinocchio-rs/releases/download";
-    let version = env!("CARGO_PKG_VERSION");
+    let version = env::var("CARGO_PKG_VERSION").unwrap();
     let platform = Plaform::get()?.name();
     let arch = Arch::get()?.name();
     Some(format!(
@@ -156,16 +158,15 @@ fn cpp_dir() -> PathBuf {
     manifest_dir.join("cpp")
 }
 
-fn target_dir() -> PathBuf {
-    let manifest_dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
-    manifest_dir.join("target")
+fn out_dir() -> PathBuf {
+    PathBuf::from(env::var("OUT_DIR").unwrap())
 }
 
 fn lib_dir() -> PathBuf {
     let platform = Plaform::get().unwrap();
     let arch = Arch::get().unwrap();
-    let version = env!("CARGO_PKG_VERSION");
-    target_dir()
+    let version = env::var("CARGO_PKG_VERSION").unwrap();
+    out_dir()
         .join("lib")
         .join(format!("{version}"))
         .join(platform.name())

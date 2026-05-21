@@ -1,5 +1,8 @@
 ### Pinocchio RS
 
+![Crates.io Version](https://img.shields.io/crates/v/pinocchio_rs?color=green)
+![Crates.io MSRV](https://img.shields.io/crates/msrv/pinocchio_rs)
+
 <p align="center">
   <img src="assets/anim.png" width="480">
 </p>
