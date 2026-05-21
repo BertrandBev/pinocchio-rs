@@ -80,9 +80,16 @@ fn download_binary() {
 
 #[cfg(not(feature = "source_build"))]
 fn download_file(url: &str, dest: &PathBuf) {
-    let response = ureq::get(url)
-        .call()
-        .expect(&format!("Failed to download {}", url));
+    let response = match ureq::get(url).call() {
+        Ok(ok) => ok,
+        Err(err) => {
+            panic!(
+                "Failed to download {}: {}\nTo build from source, enable the features source_build",
+                url, err
+            )
+        }
+    };
+
     let mut file =
         std::fs::File::create(dest).expect(&format!("Failed to create file at {:?}", dest));
     let mut reader = response.into_body().into_reader();
