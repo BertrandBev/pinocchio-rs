@@ -3,6 +3,11 @@ name = "pinocchio_rs"
 version = "1.0.0"
 edition = "2021"
 rust-version = "1.75"
+description = "Rust bindings to pinocchio-cpp"
+license = "BSD-2"
+documentation = "https://docs.rs/pinocchio_rs"
+homepage = "https://github.com/BertrandBev/pinocchio-rs"
+repository = "https://github.com/BertrandBev/pinocchio-rs"
 
 [dependencies]
 nalgebra = { version = "0.33" }
