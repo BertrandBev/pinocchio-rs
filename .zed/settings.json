@@ -5,6 +5,13 @@
     },
   },
   "lsp": {
+    "rust-analyzer": {
+      "initialization_options": {
+        "cargo": {
+          // "features": ["source_build"],
+        },
+      },
+    },
     "clangd": {
       "binary": {
         "path": "clangd",
