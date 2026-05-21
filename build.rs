@@ -84,7 +84,7 @@ fn download_file(url: &str, dest: &PathBuf) {
         Ok(ok) => ok,
         Err(err) => {
             panic!(
-                "Failed to download {}: {}\nTo build from source, enable the features source_build",
+                "Failed to download {}: {}\nTo build from source, enable the feature 'source_build'",
                 url, err
             )
         }
