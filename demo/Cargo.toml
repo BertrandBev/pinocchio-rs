@@ -6,4 +6,5 @@ edition = "2024"
 [dependencies]
 eframe = "0.34.1"
 egui = "0.34.1"
-pinocchio_rs = {path = "../", features = ["source_build"]}
+# pinocchio_rs = {version = "1.0.0", features = ["source_build"]}
+pinocchio_rs = { path = "../", features = ["source_build"]}
