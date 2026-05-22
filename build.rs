@@ -52,7 +52,7 @@ fn source_build() {
     println!("cargo:warning=out_dir: {:?}", out_dir());
     println!("cargo:warning=cpp_dir: {:?}", cpp_dir());
     let cmd = cmd
-        .args(["-P", cpp_dir().to_str().unwrap()])
+        .args(["-y", "-P", cpp_dir().to_str().unwrap()])
         .current_dir(&out_dir());
     println!("cargo:warning=cmd: {:?}", cmd);
     let xmake_status = cmd.status().expect("xmake cmd error");

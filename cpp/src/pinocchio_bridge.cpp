@@ -1,12 +1,8 @@
 #include "pinocchio_bridge.h"
-#include "pinocchio/algorithm/frames.hpp"
-#include "pinocchio/algorithm/jacobian.hpp"
-#include "pinocchio/algorithm/rnea.hpp"
 #include "pinocchio_bridge_utils.h"
 #include "rust/cxx.h"
 #include <cassert>
 #include <cstdint>
-#include <ostream>
 #include <utility>
 
 #include <pinocchio/multibody/visitor.hpp>
