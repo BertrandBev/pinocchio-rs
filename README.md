@@ -2,6 +2,7 @@
 
 [![Crates.io Version](https://img.shields.io/crates/v/pinocchio_rs?color=green)](https://crates.io/crates/pinocchio_rs)
 [![Crates.io MSRV](https://img.shields.io/crates/msrv/pinocchio_rs)](https://crates.io/crates/pinocchio_rs)
+[![docs.rs](https://img.shields.io/docsrs/pinocchio_rs)](https://docs.rs/crate/pinocchio_rs)
 [![Static Badge](https://img.shields.io/badge/handcoded%20-%20purple)](https://crates.io/crates/pinocchio_rs)
 
 <p align="center">
