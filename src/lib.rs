@@ -42,7 +42,7 @@ mod ffi {
         fn nq(&self) -> i32;
         fn nv(&self) -> i32;
         fn neutral(&self, out: &mut [f64]) -> bool;
-        fn forward_kinematics(self: Pin<&mut Self>, q: &[f64]) -> bool;
+        fn forward_kinematics(self: Pin<&mut Self>, q: &[f64], v: &[f64]) -> bool;
         fn compute_joint_jacobians(self: Pin<&mut Self>) -> bool;
         fn update_frame_placements(self: Pin<&mut Self>) -> bool;
         fn rnea(self: Pin<&mut Self>, q: &[f64], v: &[f64], a_cmd: &[f64], t: &mut [f64]) -> bool;

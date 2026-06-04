@@ -204,9 +204,9 @@ bool Model::neutral(Slice out) const {
   return true;
 }
 
-bool Model::forward_kinematics(ConstSlice q) {
+bool Model::forward_kinematics(ConstSlice q, ConstSlice v) {
   auto &d = *data;
-  pin::forwardKinematics(d.model, d.data, MAP(q, nq()));
+  pin::forwardKinematics(d.model, d.data, MAP(q, nq()), MAP(v, nv()));
   return true;
 }
 

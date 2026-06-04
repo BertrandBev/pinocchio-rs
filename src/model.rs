@@ -164,8 +164,11 @@ impl<const NQ: usize, const NV: usize> Model<NQ, NV> {
         assert!(self.0.neutral(out.as_mut_slice()));
     }
 
-    pub fn forward_kinematics(&mut self, q: &SVec<NQ>) {
-        assert!(self.0.pin_mut().forward_kinematics(q.as_slice()));
+    pub fn forward_kinematics(&mut self, q: &SVec<NQ>, v: &SVec<NV>) {
+        assert!(self
+            .0
+            .pin_mut()
+            .forward_kinematics(q.as_slice(), v.as_slice()));
     }
 
     pub fn update_frame_placements(&mut self) {
@@ -352,22 +355,3 @@ impl From<String> for ModelError {
 }
 
 impl std::error::Error for ModelError {}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use std::{env, path::PathBuf};
-
-    // #[test]
-    // fn test_pinocchio_model() {
-    //     let path = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap()).join("./src/model.urdf");
-    //     let mut model = Model::<9, 8>::load(path.to_str().unwrap(), true).unwrap();
-    //     assert_eq!(model.nq(), 9);
-    //     assert_eq!(model.nv(), 8);
-    //     let mut q: SVec<9> = Default::default();
-    //     model.neutral(&mut q);
-    //     model.forward_kinematics(&q);
-    //     println!("{:?}", model);
-    //     println!("q: {}", q);
-    // }
-}

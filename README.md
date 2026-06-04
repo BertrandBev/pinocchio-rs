@@ -36,18 +36,19 @@ let mut model = Model::load(
         .unwrap();
 
 // Initialize the state vector
+let mut v = SVec::default();
 let mut q = SVec::default();
 q[0] = PI / 2.0;
 q[1] = PI / 4.0;
-model.forward_kinematics(&q);
+model.forward_kinematics(&q, &v);
 
 // Run sim loop
 loop {
     // Zero torques on both joints
     let t = SVec::default();
-    self.model.runge_kutta_4(&mut self.q, &mut self.v, &t, dt);
+    model.runge_kutta_4(&mut q, &mut v, &t, dt);
     // Or self.model.semi_implicit_euler(...) for faster iterations
-    self.model.forward_kinematics(&self.q);
+    model.forward_kinematics(&q, &v);
     // Run at 100Hz
     std::thread::sleep(std::time::Duration::from_millis(10));
 }

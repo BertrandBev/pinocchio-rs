@@ -2570,9 +2570,7 @@ checksum = "a89322df9ebe1c1578d689c92318e070967d1042b512afbe49518723f4e6d5cd"
 
 [[package]]
 name = "pinocchio_rs"
-version = "1.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "93ef7b42b82474e76feeb94f10ad761347bc82552485d548c2f82883f756d4b3"
+version = "1.0.3"
 dependencies = [
  "cxx",
  "cxx-build",

@@ -29,14 +29,15 @@ impl Default for PendulumApp {
         )
         .unwrap();
         let mut q = SVec::default();
+        let v = SVec::default();
         q[0] = PI / 2.0;
         q[1] = PI / 4.0;
-        model.forward_kinematics(&q);
+        model.forward_kinematics(&q, &v);
         Self {
             t0: SystemTime::now(),
             t: SystemTime::now(),
             q,
-            v: SVec::default(),
+            v,
             model,
             trail: VecDeque::with_capacity(512),
         }
@@ -47,7 +48,7 @@ impl PendulumApp {
     pub fn step(&mut self, dt: f64) {
         let t = SVec::default();
         self.model.runge_kutta_4(&mut self.q, &mut self.v, &t, dt);
-        self.model.forward_kinematics(&self.q);
+        self.model.forward_kinematics(&self.q, &self.v);
     }
 }
 

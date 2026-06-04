@@ -42,7 +42,7 @@ public:
   int nq() const;
   int nv() const;
   bool neutral(rust::Slice<double> out) const;
-  bool forward_kinematics(ConstSlice q);
+  bool forward_kinematics(ConstSlice q, ConstSlice v);
   bool compute_joint_jacobians();
   bool update_frame_placements();
   bool rnea(ConstSlice q, ConstSlice v, ConstSlice a_cmd, Slice t);

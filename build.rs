@@ -49,12 +49,9 @@ fn main() {
 fn source_build() {
     use std::process::Command;
     let mut cmd = Command::new("xmake");
-    println!("cargo:warning=out_dir: {:?}", out_dir());
-    println!("cargo:warning=cpp_dir: {:?}", cpp_dir());
     let cmd = cmd
         .args(["-y", "-P", cpp_dir().to_str().unwrap()])
         .current_dir(&out_dir());
-    println!("cargo:warning=cmd: {:?}", cmd);
     let xmake_status = cmd.status().expect("xmake cmd error");
     assert!(xmake_status.success(), "xmake build failed");
 
