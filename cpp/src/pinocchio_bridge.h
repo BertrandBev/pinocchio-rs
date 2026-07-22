@@ -14,6 +14,9 @@ struct Joint {
 
 class Model {
 public:
+  // Model
+  bool set_gravity(ConstSlice gravity);
+
   // Joints
   size_t joint_count() const;
   size_t get_joint_id(rust::Str name) const;

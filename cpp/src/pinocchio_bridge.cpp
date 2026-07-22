@@ -44,6 +44,13 @@ Model::~Model() = default;
 Model::Model(const Model &other)
     : data(std::make_unique<ModelImpl>(*other.data)) {}
 
+// Model
+bool Model::set_gravity(ConstSlice gravity) {
+  auto &d = *data;
+  d.model.gravity.linear() << MAP(gravity, 3);
+  return true;
+}
+
 // Joints
 size_t Model::joint_count() const {
   auto &d = *data;

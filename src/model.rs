@@ -38,6 +38,11 @@ impl<const NQ: usize, const NV: usize> Model<NQ, NV> {
         Ok(Self(loaded))
     }
 
+    // Model
+    pub fn set_gravity(&mut self, gravity: &SVec<3>) {
+        assert!(self.0.pin_mut().set_gravity(gravity.as_slice()));
+    }
+
     // Joints
     pub fn get_joint_indices(&self, id: usize) -> JointIndices {
         let mut indices = JointIndices::default();

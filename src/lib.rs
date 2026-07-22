@@ -5,6 +5,9 @@ mod ffi {
 
         type Model;
 
+        // Model
+        fn set_gravity(self: Pin<&mut Self>, gravity: &[f64]) -> bool;
+
         // Joints
         fn joint_count(&self) -> usize;
         fn get_joint_id(&self, name: &str) -> usize;

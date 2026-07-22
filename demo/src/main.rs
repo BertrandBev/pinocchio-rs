@@ -47,6 +47,8 @@ impl Default for PendulumApp {
 impl PendulumApp {
     pub fn step(&mut self, dt: f64) {
         let t = SVec::default();
+        self.model
+            .set_gravity(&SVec::from_row_slice(&[0.0, 0.0, -9.81]));
         self.model.runge_kutta_4(&mut self.q, &mut self.v, &t, dt);
         self.model.forward_kinematics(&self.q, &self.v);
     }
