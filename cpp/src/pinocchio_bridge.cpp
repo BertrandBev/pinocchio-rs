@@ -265,13 +265,21 @@ std::unique_ptr<Model> Model::model_load(rust::Str path, bool free_flyer) {
   auto urdf_dom = urdf::parseURDFFile(fname);
   for (const auto &joint_pair : urdf_dom->joints_) {
     const auto &urdf_joint = joint_pair.second;
+    // Unmodeled joint, skip
+    if (!model.existJointName(urdf_joint->name)) {
+        continue;
+    }
+    const pin::JointIndex id = model.getJointId(urdf_joint->name);
+    // Get joint indices
+    const int iq = model.joints[id].idx_q();
+    const int iv = model.joints[id].idx_v();
     if (urdf_joint->dynamics) {
-      assert(model.existJointName(urdf_joint->name));
-      pin::JointIndex id = model.getJointId(urdf_joint->name);
-      model.damping[id] = urdf_joint->dynamics->damping;
-      model.friction[id] = urdf_joint->dynamics->friction;
-      model.lowerPositionLimit[id] = urdf_joint->limits->lower;
-      model.upperPositionLimit[id] = urdf_joint->limits->upper;
+      model.damping[iv]  = urdf_joint->dynamics->damping;
+      model.friction[iv] = urdf_joint->dynamics->friction;
+    }
+    if (urdf_joint->limits) {
+      model.lowerPositionLimit[iq] = urdf_joint->limits->lower;
+      model.upperPositionLimit[iq] = urdf_joint->limits->upper;
     }
   }
   auto data = std::make_unique<ModelImpl>(model);
