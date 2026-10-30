@@ -164,7 +164,7 @@ bool Model::get_frame_pose(size_t id, Slice translation, Slice rotation) const {
 bool Model::get_frame_velocity(size_t id, Slice linear, Slice angular) const {
   auto &d = *data;
   INDEX_CHECK_LEN(id, frame_count());
-  auto &v = d.data.v[d.model.frames[id].parentJoint];
+  auto &v = d.data.ov[d.model.frames[id].parentJoint];
   MAP_MUT(linear, 3) << v.linear();
   MAP_MUT(angular, 3) << v.angular();
   return true;
@@ -274,14 +274,14 @@ std::unique_ptr<Model> Model::model_load(rust::Str path, bool free_flyer) {
     const auto &urdf_joint = joint_pair.second;
     // Unmodeled joint, skip
     if (!model.existJointName(urdf_joint->name)) {
-        continue;
+      continue;
     }
     const pin::JointIndex id = model.getJointId(urdf_joint->name);
     // Get joint indices
     const int iq = model.joints[id].idx_q();
     const int iv = model.joints[id].idx_v();
     if (urdf_joint->dynamics) {
-      model.damping[iv]  = urdf_joint->dynamics->damping;
+      model.damping[iv] = urdf_joint->dynamics->damping;
       model.friction[iv] = urdf_joint->dynamics->friction;
     }
     if (urdf_joint->limits) {
