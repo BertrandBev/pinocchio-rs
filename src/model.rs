@@ -204,6 +204,25 @@ impl<const NQ: usize, const NV: usize> Model<NQ, NV> {
             .rnea(q.as_slice(), v.as_slice(), a.as_slice(), t.as_mut_slice()));
     }
 
+    pub fn compute_m_inverse(&mut self, q: &SVec<NQ>, m: &mut SMat<NV, NV>) {
+        assert!(self
+            .0
+            .pin_mut()
+            .compute_m_inverse(q.as_slice(), m.as_mut_slice()));
+    }
+
+    pub fn non_linear_effects(&mut self, q: &SVec<NQ>, v: &SVec<NV>, nle: &mut SVec<NV>) {
+        assert!(self.0.pin_mut().non_linear_effects(
+            q.as_slice(),
+            v.as_slice(),
+            nle.as_mut_slice()
+        ));
+    }
+
+    pub fn crba(&mut self, q: &SVec<NQ>, m: &mut SMat<NV, NV>) {
+        assert!(self.0.pin_mut().crba(q.as_slice(), m.as_mut_slice()));
+    }
+
     pub fn integrate(&self, q: &SVec<NQ>, dv: &SVec<NV>, q_out: &mut SVec<NQ>) {
         assert!(self
             .0

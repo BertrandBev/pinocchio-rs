@@ -3,6 +3,7 @@
 #include <Eigen/Geometry>
 #include <pinocchio/algorithm/aba-derivatives.hpp>
 #include <pinocchio/algorithm/constrained-dynamics.hpp>
+#include <pinocchio/algorithm/crba.hpp>
 #include <pinocchio/algorithm/frames.hpp>
 #include <pinocchio/algorithm/jacobian.hpp>
 #include <pinocchio/algorithm/joint-configuration.hpp>

@@ -50,6 +50,9 @@ public:
   bool update_frame_placements();
   bool rnea(ConstSlice q, ConstSlice v, ConstSlice a_cmd, Slice t);
   bool aba(ConstSlice q, ConstSlice v, ConstSlice t, Slice ddq);
+  bool compute_m_inverse(ConstSlice q, Slice m);
+  bool non_linear_effects(ConstSlice q, ConstSlice v, Slice nle);
+  bool crba(ConstSlice q, Slice m);
   bool difference(ConstSlice q0, ConstSlice q1, Slice q) const;
   bool integrate(ConstSlice q, ConstSlice vdt, Slice q_next) const;
 

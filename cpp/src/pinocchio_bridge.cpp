@@ -1,4 +1,6 @@
 #include "pinocchio_bridge.h"
+#include "pinocchio/algorithm/aba.hpp"
+#include "pinocchio/algorithm/rnea.hpp"
 #include "pinocchio_bridge_utils.h"
 #include "rust/cxx.h"
 #include <cassert>
@@ -164,7 +166,7 @@ bool Model::get_frame_pose(size_t id, Slice translation, Slice rotation) const {
 bool Model::get_frame_velocity(size_t id, Slice linear, Slice angular) const {
   auto &d = *data;
   INDEX_CHECK_LEN(id, frame_count());
-  auto &v = d.data.ov[d.model.frames[id].parentJoint];
+  auto &v = d.data.v[d.model.frames[id].parentJoint];
   MAP_MUT(linear, 3) << v.linear();
   MAP_MUT(angular, 3) << v.angular();
   return true;
@@ -240,6 +242,28 @@ bool Model::aba(ConstSlice q, ConstSlice v, ConstSlice t, Slice ddq) {
   auto &d = *data;
   pin::aba(d.model, d.data, MAP(q, nq()), MAP(v, nv()), MAP(t, nv()));
   MAP_MUT(ddq, nv()) = d.data.ddq;
+  return true;
+}
+
+bool Model::compute_m_inverse(ConstSlice q, Slice m) {
+  auto &d = *data;
+  auto mInv = pin::computeMinverse(d.model, d.data, MAP(q, nq()));
+  MAP_MUT(m, nv() * nv()) << MAP_MAT_MUT(mInv, nv() * nv());
+  return true;
+}
+
+bool Model::non_linear_effects(ConstSlice q, ConstSlice v, Slice nle) {
+  auto &d = *data;
+  auto mInv =
+      pin::nonLinearEffects(d.model, d.data, MAP(q, nq()), MAP(v, nv()));
+  MAP_MUT(nle, nv()) = d.data.nle;
+  return true;
+}
+
+bool Model::crba(ConstSlice q, Slice m) {
+  auto &d = *data;
+  pin::crba(d.model, d.data, MAP(q, nq()));
+  MAP_MUT(m, nv() * nv()) << MAP_MAT_MUT(d.data.M, nv() * nv());
   return true;
 }
 

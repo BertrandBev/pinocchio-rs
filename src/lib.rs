@@ -50,6 +50,9 @@ mod ffi {
         fn update_frame_placements(self: Pin<&mut Self>) -> bool;
         fn rnea(self: Pin<&mut Self>, q: &[f64], v: &[f64], a_cmd: &[f64], t: &mut [f64]) -> bool;
         fn aba(self: Pin<&mut Self>, q: &[f64], v: &[f64], t: &[f64], ddq: &mut [f64]) -> bool;
+        fn compute_m_inverse(self: Pin<&mut Self>, q: &[f64], m_inv: &mut [f64]) -> bool;
+        fn non_linear_effects(self: Pin<&mut Self>, q: &[f64], v: &[f64], nle: &mut [f64]) -> bool;
+        fn crba(self: Pin<&mut Self>, q: &[f64], m: &mut [f64]) -> bool;
         fn difference(&self, q0: &[f64], q1: &[f64], v: &mut [f64]) -> bool;
         fn integrate(&self, q: &[f64], vdt: &[f64], q_next: &mut [f64]) -> bool;
 
